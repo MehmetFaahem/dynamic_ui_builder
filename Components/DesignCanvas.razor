@@ -31,7 +31,7 @@
     private (int x, int y) lastPosition;
     
     // Component refs for JS interop
-    private DotNetObjectReference<DesignCanvas> objRef;
+    private DotNetObjectReference<DesignCanvas>? objRef;
     
     protected override void OnInitialized()
     {
@@ -73,7 +73,7 @@
             if (component != null)
             {
                 // Position the component where it was dropped
-                var rect = canvasRef.GetClientRect();
+                var rect = canvasRef.GetBoundingClientRect();
                 component.X = (int)(e.ClientX - rect.Left - (component.Width / 2));
                 component.Y = (int)(e.ClientY - rect.Top - (component.Height / 2));
                 
@@ -83,7 +83,7 @@
         }
     }
     
-    private Models.ComponentBase CreateComponentByType(string componentType)
+    private UIComponentBase? CreateComponentByType(string componentType)
     {
         return componentType switch
         {

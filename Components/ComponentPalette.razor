@@ -107,7 +107,7 @@
     private void AddComponentToCanvas(string componentType)
     {
         // Create a new component at the center of the canvas
-        ComponentBase newComponent = CreateComponentByType(componentType);
+        UIComponentBase newComponent = CreateComponentByType(componentType);
         
         if (newComponent != null)
         {
@@ -122,7 +122,7 @@
         }
     }
     
-    private ComponentBase CreateComponentByType(string componentType)
+    private UIComponentBase CreateComponentByType(string componentType)
     {
         return componentType switch
         {

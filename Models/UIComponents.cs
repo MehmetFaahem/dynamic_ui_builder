@@ -81,7 +81,7 @@ namespace UIBuilderApp.Models
         }
     }
 
-    public class ImageComponent : ComponentBase
+    public class ImageComponent : UIComponentBase
     {
         public override string ComponentType => "Image";
 
@@ -94,11 +94,11 @@ namespace UIBuilderApp.Models
         }
     }
 
-    public class ContainerComponent : ComponentBase
+    public class ContainerComponent : UIComponentBase
     {
         public override string ComponentType => "Container";
         
-        public List<ComponentBase> Children { get; set; } = new List<ComponentBase>();
+        public List<UIComponentBase> Children { get; set; } = new List<UIComponentBase>();
 
         public ContainerComponent()
         {

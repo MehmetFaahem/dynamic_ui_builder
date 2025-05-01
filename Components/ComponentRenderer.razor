@@ -8,7 +8,8 @@
             height: @(Component.Height)px; 
             z-index: @Component.ZIndex;"
      @onclick="OnComponentClick"
-     @onclick:stopPropagation="true">
+     @onclick:stopPropagation="true"
+     data-component-type="@Component.ComponentType">
     
     @* Render different component types *@
     @switch (Component.ComponentType)
@@ -78,16 +79,16 @@
     @* Resize handles when selected *@
     @if (IsSelected)
     {
-        <div class="resize-handle resize-handle-nw" @onmousedown="@(e => OnResizeStart(e, "nw"))"></div>
-        <div class="resize-handle resize-handle-ne" @onmousedown="@(e => OnResizeStart(e, "ne"))"></div>
-        <div class="resize-handle resize-handle-sw" @onmousedown="@(e => OnResizeStart(e, "sw"))"></div>
-        <div class="resize-handle resize-handle-se" @onmousedown="@(e => OnResizeStart(e, "se"))"></div>
+        <div class="resize-handle top-left" @onmousedown="@(e => OnResizeStart(e, "nw"))"></div>
+        <div class="resize-handle top-right" @onmousedown="@(e => OnResizeStart(e, "ne"))"></div>
+        <div class="resize-handle bottom-left" @onmousedown="@(e => OnResizeStart(e, "sw"))"></div>
+        <div class="resize-handle bottom-right" @onmousedown="@(e => OnResizeStart(e, "se"))"></div>
     }
 </div>
 
 @code {
-    [Parameter]
-    public Models.ComponentBase Component { get; set; }
+    [Parameter, EditorRequired]
+    public UIComponentBase Component { get; set; } = null!;
     
     [Parameter]
     public bool IsSelected { get; set; }

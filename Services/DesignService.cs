@@ -14,10 +14,10 @@ namespace UIBuilderApp.Services
         public FormLayout CurrentForm { get; private set; }
 
         // Currently selected component
-        public ComponentBase SelectedComponent { get; private set; }
+        public UIComponentBase SelectedComponent { get; private set; }
 
         // Event raised when component selection changes
-        public event Action<ComponentBase> OnComponentSelected;
+        public event Action<UIComponentBase> OnComponentSelected;
 
         // Event raised when the form is modified
         public event Action OnFormModified;
@@ -82,7 +82,7 @@ namespace UIBuilderApp.Services
         /// <summary>
         /// Add a new component to the form
         /// </summary>
-        public void AddComponent(ComponentBase component)
+        public void AddComponent(UIComponentBase component)
         {
             CurrentForm.Components.Add(component);
             
@@ -115,6 +115,26 @@ namespace UIBuilderApp.Services
                 OnComponentsChanged?.Invoke();
                 OnFormModified?.Invoke();
             }
+        }
+
+        /// <summary>
+        /// Delete the currently selected component
+        /// </summary>
+        public void DeleteComponent(UIComponentBase component)
+        {
+            if (component != null)
+            {
+                RemoveComponent(component.Id);
+            }
+        }
+
+        /// <summary>
+        /// Update a component
+        /// </summary>
+        public void UpdateComponent(UIComponentBase component)
+        {
+            OnComponentsChanged?.Invoke();
+            OnFormModified?.Invoke();
         }
 
         /// <summary>
@@ -170,6 +190,14 @@ namespace UIBuilderApp.Services
         }
 
         /// <summary>
+        /// Notify that the form has been modified
+        /// </summary>
+        public void NotifyFormModified()
+        {
+            OnFormModified?.Invoke();
+        }
+
+        /// <summary>
         /// Bring component to front (highest z-index)
         /// </summary>
         public void BringToFront(string componentId)
@@ -206,7 +234,7 @@ namespace UIBuilderApp.Services
         /// <summary>
         /// Creates a new component instance of the specified type
         /// </summary>
-        public ComponentBase CreateComponent(string componentType)
+        public UIComponentBase CreateComponent(string componentType)
         {
             return componentType switch
             {
@@ -214,7 +242,7 @@ namespace UIBuilderApp.Services
                 "TextBox" => new TextBoxComponent(),
                 "Label" => new LabelComponent(),
                 "Dropdown" => new DropdownComponent(),
-                "CheckBox" => new CheckBoxComponent(),
+                "Checkbox" => new CheckboxComponent(),
                 "RadioButton" => new RadioButtonComponent(),
                 "Image" => new ImageComponent(),
                 "Container" => new ContainerComponent(),
@@ -233,7 +261,7 @@ namespace UIBuilderApp.Services
                 "TextBox",
                 "Label",
                 "Dropdown",
-                "CheckBox",
+                "Checkbox",
                 "RadioButton",
                 "Image",
                 "Container"

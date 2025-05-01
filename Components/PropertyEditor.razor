@@ -102,7 +102,7 @@
 </style>
 
 @code {
-    private ComponentBase SelectedComponent => DesignService.SelectedComponent;
+    private UIComponentBase SelectedComponent => DesignService.SelectedComponent;
     
     protected override void OnInitialized()
     {
@@ -116,7 +116,7 @@
         DesignService.OnFormModified -= OnFormModified;
     }
     
-    private void OnComponentSelected(ComponentBase component)
+    private void OnComponentSelected(UIComponentBase component)
     {
         StateHasChanged();
     }

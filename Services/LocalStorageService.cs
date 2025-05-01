@@ -29,6 +29,14 @@ namespace UIBuilderApp.Services
         }
 
         /// <summary>
+        /// Get a list of all saved forms
+        /// </summary>
+        public async Task<List<FormMetadata>> GetFormListAsync()
+        {
+            return await GetAllFormMetadataAsync();
+        }
+
+        /// <summary>
         /// Get all form metadata (without full component details)
         /// </summary>
         public async Task<List<FormMetadata>> GetAllFormMetadataAsync()

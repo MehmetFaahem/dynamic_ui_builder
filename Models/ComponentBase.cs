@@ -52,7 +52,7 @@ namespace UIBuilderApp.Models
         /// <summary>
         /// Constructor with optional id parameter
         /// </summary>
-        public UIComponentBase(string id = null)
+        public UIComponentBase(string? id = null)
         {
             if (!string.IsNullOrEmpty(id))
             {
