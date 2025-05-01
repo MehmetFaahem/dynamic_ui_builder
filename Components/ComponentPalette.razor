@@ -7,8 +7,6 @@
         @foreach (var componentType in GetAvailableComponentTypes())
         {
             <div class="palette-item" 
-                 draggable="true" 
-                 @ondragstart="@(e => HandleDragStart(e, componentType))"
                  @onclick="@(() => AddComponentToCanvas(componentType))">
                 <div class="palette-item-icon">
                     @switch (componentType)
@@ -62,7 +60,7 @@
         border: 1px solid #ddd;
         border-radius: 4px;
         background-color: white;
-        cursor: grab;
+        cursor: pointer;
         display: flex;
         align-items: center;
         transition: all 0.2s;
@@ -94,14 +92,6 @@
             "Checkbox",
             "RadioButton"
         };
-    }
-    
-    private void HandleDragStart(DragEventArgs args, string componentType)
-    {
-        // Set drag data
-        args.DataTransfer.EffectAllowed = "copy";
-        args.DataTransfer.Types.Add("component");
-        args.DataTransfer.SetData("component", componentType);
     }
     
     private void AddComponentToCanvas(string componentType)

@@ -7,11 +7,7 @@
 <div class="design-canvas-container">
     <div class="design-canvas" 
          style="width: @(DesignService.CurrentForm.CanvasWidth)px; height: @(DesignService.CurrentForm.CanvasHeight)px;"
-         @onclick="ClearSelection"
-         @ondragover:preventDefault
-         @ondrop:preventDefault
-         @ondrop="HandleDrop"
-         @ref="canvasRef">
+         @onclick="ClearSelection">
         
         @foreach (var component in DesignService.CurrentForm.Components.OrderBy(c => c.ZIndex))
         {
@@ -26,25 +22,9 @@
 </div>
 
 @code {
-    private ElementReference canvasRef;
-    private bool isDragging = false;
-    private (int x, int y) lastPosition;
-    
-    // Component refs for JS interop
-    private DotNetObjectReference<DesignCanvas>? objRef;
-    
     protected override void OnInitialized()
     {
-        objRef = DotNetObjectReference.Create(this);
         DesignService.OnComponentsChanged += OnComponentsChanged;
-    }
-    
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await JSRuntime.InvokeVoidAsync("designCanvas.initialize", canvasRef, objRef);
-        }
     }
     
     private void OnComponentsChanged()
@@ -62,76 +42,8 @@
         DesignService.SelectComponent(componentId);
     }
     
-    private void HandleDrop(DragEventArgs e)
-    {
-        var componentType = e.DataTransfer.GetData("component");
-        if (!string.IsNullOrEmpty(componentType))
-        {
-            // Create the component
-            var component = CreateComponentByType(componentType);
-            
-            if (component != null)
-            {
-                // Position the component where it was dropped
-                var rect = canvasRef.GetBoundingClientRect();
-                component.X = (int)(e.ClientX - rect.Left - (component.Width / 2));
-                component.Y = (int)(e.ClientY - rect.Top - (component.Height / 2));
-                
-                // Add to the design
-                DesignService.AddComponent(component);
-            }
-        }
-    }
-    
-    private UIComponentBase? CreateComponentByType(string componentType)
-    {
-        return componentType switch
-        {
-            "Button" => new ButtonComponent(),
-            "TextBox" => new TextBoxComponent(),
-            "Label" => new LabelComponent(),
-            "Dropdown" => new DropdownComponent(),
-            "Checkbox" => new CheckboxComponent(),
-            "RadioButton" => new RadioButtonComponent(),
-            _ => null
-        };
-    }
-    
-    [JSInvokable]
-    public void OnCanvasMouseMove(int x, int y)
-    {
-        if (isDragging && DesignService.SelectedComponent != null)
-        {
-            int deltaX = x - lastPosition.x;
-            int deltaY = y - lastPosition.y;
-            
-            var component = DesignService.SelectedComponent;
-            DesignService.UpdateComponentPosition(component.Id, component.X + deltaX, component.Y + deltaY);
-            
-            lastPosition = (x, y);
-        }
-    }
-    
-    [JSInvokable]
-    public void OnCanvasMouseDown(int x, int y)
-    {
-        lastPosition = (x, y);
-        
-        if (DesignService.SelectedComponent != null)
-        {
-            isDragging = true;
-        }
-    }
-    
-    [JSInvokable]
-    public void OnCanvasMouseUp()
-    {
-        isDragging = false;
-    }
-    
     public void Dispose()
     {
         DesignService.OnComponentsChanged -= OnComponentsChanged;
-        objRef?.Dispose();
     }
 } 
