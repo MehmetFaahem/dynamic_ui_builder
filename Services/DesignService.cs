@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UIBuilderApp.Models;
+using Microsoft.JSInterop;
 
 namespace UIBuilderApp.Services
 {
@@ -10,6 +11,8 @@ namespace UIBuilderApp.Services
     /// </summary>
     public class DesignService
     {
+        private readonly IJSRuntime _jsRuntime;
+
         // Currently active form being edited
         public FormLayout CurrentForm { get; private set; }
 
@@ -26,8 +29,9 @@ namespace UIBuilderApp.Services
         public event Action? OnComponentsChanged;
 
         // Constructor
-        public DesignService()
+        public DesignService(IJSRuntime jsRuntime)
         {
+            _jsRuntime = jsRuntime;
             CurrentForm = new FormLayout();
             SelectedComponent = null;
         }
@@ -146,6 +150,10 @@ namespace UIBuilderApp.Services
             var component = CurrentForm.Components.FirstOrDefault(c => c.Id == componentId);
             if (component != null)
             {
+                // Ensure the component stays within canvas bounds
+                x = Math.Max(0, Math.Min(x, CurrentForm.CanvasWidth - component.Width));
+                y = Math.Max(0, Math.Min(y, CurrentForm.CanvasHeight - component.Height));
+                
                 component.X = x;
                 component.Y = y;
                 OnComponentsChanged?.Invoke();

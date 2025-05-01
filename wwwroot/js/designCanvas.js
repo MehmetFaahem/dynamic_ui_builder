@@ -68,10 +68,34 @@ window.designCanvas = {
     this.dotNetRef = null;
     this.canvasElement = null;
   },
+
+  // Drag and drop functionality
+  startDrag: function (element, x, y, initialX, initialY) {
+    isDragging = true;
+    currentElement = element;
+    startX = x;
+    startY = y;
+    originalX = initialX;
+    originalY = initialY;
+
+    // Add a dragging class for visual feedback
+    element.classList.add("dragging");
+
+    return true;
+  },
+
+  getElementBounds: function (element) {
+    const rect = element.getBoundingClientRect();
+    return {
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+  },
 };
 
-// Design Canvas Drag and Drop JavaScript
-
+// Drag and drop variables
 let isDragging = false;
 let currentElement = null;
 let startX, startY;
@@ -81,21 +105,6 @@ let originalX, originalY;
 function initDragDrop() {
   document.addEventListener("mouseup", endDrag);
   document.addEventListener("mousemove", drag);
-}
-
-// Start dragging a component
-function startDrag(element, x, y, initialX, initialY) {
-  isDragging = true;
-  currentElement = element;
-  startX = x;
-  startY = y;
-  originalX = initialX;
-  originalY = initialY;
-
-  // Add a dragging class for visual feedback
-  element.classList.add("dragging");
-
-  return true;
 }
 
 // Handle the drag operation
@@ -141,17 +150,3 @@ function endDrag() {
 
 // Initialize when the document is ready
 document.addEventListener("DOMContentLoaded", initDragDrop);
-
-// Export functions for Blazor interop
-window.designCanvas = {
-  startDrag,
-  getElementBounds: (element) => {
-    const rect = element.getBoundingClientRect();
-    return {
-      x: rect.left,
-      y: rect.top,
-      width: rect.width,
-      height: rect.height,
-    };
-  },
-};

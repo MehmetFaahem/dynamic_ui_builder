@@ -125,8 +125,8 @@
         // Select the component first
         await OnSelect.InvokeAsync(Component.Id);
         
-        // Start dragging if it's not a resize handle
-        if (e.Target.ToString().Contains("resize-handle")) return;
+        // We don't need to check for resize handles here since those have their own handler
+        // and event propagation will stop there
         
         // Start dragging operation in JavaScript
         await JSRuntime.InvokeVoidAsync(
