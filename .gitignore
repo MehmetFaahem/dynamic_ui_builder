@@ -1,0 +1,42 @@
+# .NET build artifacts
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider/JetBrains IDE
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# npm packages (if applicable)
+node_modules/
+
+# Log files
+*.log
+
+# Runtime-generated files
+wwwroot/css/app.css
+wwwroot/js/app.js
+
+# Local environment files
+.env
+.env.*
+
+# Backup & temp files
+*.bak
+*.tmp
+*.swp
+*.DS_Store
+Thumbs.db
+
+# Publish directory
+publish/

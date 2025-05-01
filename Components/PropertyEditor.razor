@@ -1,0 +1,233 @@
+@using UIBuilderApp.Models
+@inject DesignService DesignService
+@implements IDisposable
+
+<div class="property-editor">
+    @if (SelectedComponent != null)
+    {
+        <h3>Properties: @SelectedComponent.ComponentType</h3>
+        
+        <div class="property-group">
+            <h4>Position & Size</h4>
+            <div class="property-row">
+                <label>X:</label>
+                <input type="number" @bind="SelectedComponent.X" @bind:event="oninput" @onchange="UpdateComponent" />
+            </div>
+            <div class="property-row">
+                <label>Y:</label>
+                <input type="number" @bind="SelectedComponent.Y" @bind:event="oninput" @onchange="UpdateComponent" />
+            </div>
+            <div class="property-row">
+                <label>Width:</label>
+                <input type="number" @bind="SelectedComponent.Width" @bind:event="oninput" @onchange="UpdateComponent" />
+            </div>
+            <div class="property-row">
+                <label>Height:</label>
+                <input type="number" @bind="SelectedComponent.Height" @bind:event="oninput" @onchange="UpdateComponent" />
+            </div>
+            <div class="property-row">
+                <label>Z-Index:</label>
+                <input type="number" @bind="SelectedComponent.ZIndex" @bind:event="oninput" @onchange="UpdateComponent" />
+            </div>
+        </div>
+        
+        <div class="property-group">
+            <h4>Component Properties</h4>
+            @foreach (var property in SelectedComponent.Properties)
+            {
+                <div class="property-row">
+                    <label>@FormatPropertyName(property.Key):</label>
+                    @RenderPropertyEditor(property.Key, property.Value)
+                </div>
+            }
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-danger" @onclick="DeleteComponent">Delete Component</button>
+        </div>
+    }
+    else
+    {
+        <div class="no-selection">
+            <p>Select a component to edit its properties</p>
+        </div>
+    }
+</div>
+
+<style>
+    .property-editor {
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-left: 1px solid #ddd;
+        height: 100%;
+        overflow-y: auto;
+    }
+    
+    .property-group {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: white;
+    }
+    
+    .property-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    
+    .property-row label {
+        flex: 0 0 40%;
+        margin-bottom: 0;
+    }
+    
+    .property-row input, .property-row select {
+        flex: 0 0 55%;
+        padding: 4px 8px;
+    }
+    
+    .action-buttons {
+        margin-top: 20px;
+    }
+    
+    .no-selection {
+        display: flex;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+    }
+</style>
+
+@code {
+    private ComponentBase SelectedComponent => DesignService.SelectedComponent;
+    
+    protected override void OnInitialized()
+    {
+        DesignService.OnComponentSelected += OnComponentSelected;
+        DesignService.OnFormModified += OnFormModified;
+    }
+    
+    public void Dispose()
+    {
+        DesignService.OnComponentSelected -= OnComponentSelected;
+        DesignService.OnFormModified -= OnFormModified;
+    }
+    
+    private void OnComponentSelected(ComponentBase component)
+    {
+        StateHasChanged();
+    }
+    
+    private void OnFormModified()
+    {
+        StateHasChanged();
+    }
+    
+    private string FormatPropertyName(string key)
+    {
+        // Convert camelCase or PascalCase to words with spaces
+        if (string.IsNullOrEmpty(key))
+            return string.Empty;
+            
+        var words = new System.Text.StringBuilder(key.Length * 2);
+        words.Append(char.ToUpper(key[0]));
+        
+        for (int i = 1; i < key.Length; i++)
+        {
+            if (char.IsUpper(key[i]))
+            {
+                words.Append(' ');
+            }
+            words.Append(key[i]);
+        }
+        
+        return words.ToString();
+    }
+    
+    private RenderFragment RenderPropertyEditor(string key, object value) => builder =>
+    {
+        var stringValue = value?.ToString() ?? string.Empty;
+        
+        if (value is bool boolValue)
+        {
+            builder.OpenElement(0, "input");
+            builder.AddAttribute(1, "type", "checkbox");
+            builder.AddAttribute(2, "checked", boolValue);
+            builder.AddAttribute(3, "onchange", EventCallback.Factory.CreateBinder<bool>(
+                this, 
+                v => UpdatePropertyValue(key, v), 
+                boolValue));
+            builder.CloseElement();
+        }
+        else if (key.Equals("CssClass", StringComparison.OrdinalIgnoreCase))
+        {
+            // Dropdown for common CSS classes
+            builder.OpenElement(0, "select");
+            builder.AddAttribute(1, "value", stringValue);
+            builder.AddAttribute(2, "onchange", EventCallback.Factory.CreateBinder<string>(
+                this,
+                v => UpdatePropertyValue(key, v),
+                stringValue));
+                
+            foreach (var cssClass in GetCommonCssClasses())
+            {
+                builder.OpenElement(3, "option");
+                builder.AddAttribute(4, "value", cssClass);
+                builder.AddContent(5, cssClass);
+                builder.CloseElement();
+            }
+            
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.OpenElement(0, "input");
+            builder.AddAttribute(1, "type", "text");
+            builder.AddAttribute(2, "value", stringValue);
+            builder.AddAttribute(3, "onchange", EventCallback.Factory.CreateBinder<string>(
+                this, 
+                v => UpdatePropertyValue(key, v), 
+                stringValue));
+            builder.CloseElement();
+        }
+    };
+    
+    private List<string> GetCommonCssClasses()
+    {
+        return new List<string>
+        {
+            "btn btn-primary",
+            "btn btn-secondary",
+            "btn btn-success",
+            "btn btn-danger",
+            "btn btn-warning",
+            "btn btn-info",
+            "form-control",
+            "form-label",
+            "form-check-input",
+            "form-select"
+        };
+    }
+    
+    private void UpdatePropertyValue(string key, object newValue)
+    {
+        if (SelectedComponent != null && SelectedComponent.Properties.ContainsKey(key))
+        {
+            SelectedComponent.Properties[key] = newValue;
+            DesignService.UpdateComponent(SelectedComponent);
+        }
+    }
+    
+    private void UpdateComponent()
+    {
+        DesignService.UpdateComponent(SelectedComponent);
+    }
+    
+    private void DeleteComponent()
+    {
+        DesignService.DeleteComponent(SelectedComponent);
+    }
+} 

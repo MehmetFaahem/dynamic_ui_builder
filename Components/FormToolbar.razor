@@ -1,0 +1,143 @@
+@using UIBuilderApp.Models
+@inject DesignService DesignService
+@inject LocalStorageService LocalStorageService
+@inject IJSRuntime JSRuntime
+
+<div class="form-toolbar">
+    <div class="form-info">
+        <input type="text" class="form-control" @bind="FormName" placeholder="Form Name" @onblur="UpdateFormName" />
+    </div>
+    
+    <div class="actions">
+        <div class="btn-group me-2">
+            <button class="btn btn-outline-primary" @onclick="NewForm" title="New Form">
+                <span class="oi oi-document"></span> New
+            </button>
+            <button class="btn btn-outline-primary" @onclick="SaveForm" title="Save Form">
+                <span class="oi oi-cloud-upload"></span> Save
+            </button>
+            <button class="btn btn-outline-primary" @onclick="LoadForm" title="Load Form">
+                <span class="oi oi-cloud-download"></span> Load
+            </button>
+        </div>
+        
+        <div class="btn-group me-2">
+            <button class="btn btn-outline-primary" @onclick="() => SetCanvasDimensions(800, 600)" title="Small Canvas">
+                <span class="oi oi-resize-both"></span> Small
+            </button>
+            <button class="btn btn-outline-primary" @onclick="() => SetCanvasDimensions(1024, 768)" title="Medium Canvas">
+                <span class="oi oi-resize-both"></span> Medium
+            </button>
+            <button class="btn btn-outline-primary" @onclick="() => SetCanvasDimensions(1280, 1024)" title="Large Canvas">
+                <span class="oi oi-resize-both"></span> Large
+            </button>
+        </div>
+        
+        <button class="btn btn-success" @onclick="SwitchToPreview" title="Preview">
+            <span class="oi oi-eye"></span> Preview
+        </button>
+    </div>
+</div>
+
+<style>
+    .form-toolbar {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 10px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .form-info {
+        display: flex;
+        align-items: center;
+        width: 250px;
+    }
+    
+    .actions {
+        display: flex;
+        align-items: center;
+    }
+    
+    .btn .oi {
+        margin-right: 5px;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public EventCallback OnSwitchToPreview { get; set; }
+    
+    private string FormName
+    {
+        get => DesignService.CurrentForm.Name;
+        set => DesignService.CurrentForm.Name = value;
+    }
+    
+    private void UpdateFormName()
+    {
+        DesignService.NotifyFormModified();
+    }
+    
+    private async Task NewForm()
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Create a new form? Any unsaved changes will be lost.");
+        
+        if (confirmed)
+        {
+            DesignService.CreateNewForm();
+        }
+    }
+    
+    private async Task SaveForm()
+    {
+        await LocalStorageService.SaveFormAsync(DesignService.CurrentForm);
+        await JSRuntime.InvokeVoidAsync("alert", $"Form '{DesignService.CurrentForm.Name}' saved successfully!");
+    }
+    
+    private async Task LoadForm()
+    {
+        // Get list of forms
+        var forms = await LocalStorageService.GetFormListAsync();
+        
+        if (forms.Count == 0)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "No saved forms found!");
+            return;
+        }
+        
+        // Simple prompting to select a form id (in a real app, this would be a modal dialog)
+        var formNames = string.Join("\\n", forms.Select(f => $"{f.Id}: {f.Name}"));
+        var formId = await JSRuntime.InvokeAsync<string>("prompt", $"Enter the ID of the form to load:\\n{formNames}");
+        
+        if (string.IsNullOrEmpty(formId))
+            return;
+            
+        try
+        {
+            var form = await LocalStorageService.LoadFormAsync(formId);
+            if (form != null)
+            {
+                DesignService.LoadForm(form);
+                await JSRuntime.InvokeVoidAsync("alert", $"Form '{form.Name}' loaded successfully!");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error loading form: {ex.Message}");
+        }
+    }
+    
+    private void SetCanvasDimensions(int width, int height)
+    {
+        DesignService.CurrentForm.CanvasWidth = width;
+        DesignService.CurrentForm.CanvasHeight = height;
+        DesignService.NotifyFormModified();
+    }
+    
+    private async Task SwitchToPreview()
+    {
+        await OnSwitchToPreview.InvokeAsync();
+    }
+} 

@@ -1,0 +1,103 @@
+@page "/"
+@using UIBuilderApp.Components
+@using UIBuilderApp.Models
+@inject DesignService DesignService
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<div class="ui-builder-app">
+    @if (IsPreviewMode)
+    {
+        <PreviewMode OnExitPreview="ExitPreviewMode" />
+    }
+    else
+    {
+        <FormToolbar OnSwitchToPreview="EnterPreviewMode" />
+        
+        <div class="main-content">
+            <div class="sidebar component-sidebar">
+                <ComponentPalette />
+            </div>
+            
+            <div class="design-area">
+                <DesignCanvas />
+            </div>
+            
+            <div class="sidebar property-sidebar">
+                <PropertyEditor />
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .ui-builder-app {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    .main-content {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+    }
+    
+    .sidebar {
+        width: 300px;
+        overflow-y: auto;
+    }
+    
+    .design-area {
+        flex: 1;
+        background-color: #f0f0f0;
+        overflow: auto;
+        position: relative;
+    }
+</style>
+
+@code {
+    private bool IsPreviewMode { get; set; } = false;
+    
+    protected override void OnInitialized()
+    {
+        // Create a new form when the app starts
+        if (DesignService.CurrentForm == null)
+        {
+            DesignService.CreateNewForm();
+        }
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Add script reference for the Open Iconic icons used in the UI
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                if (!document.getElementById('open-iconic-css')) {
+                    var link = document.createElement('link');
+                    link.id = 'open-iconic-css';
+                    link.rel = 'stylesheet';
+                    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css';
+                    document.head.appendChild(link);
+                }
+            ");
+        }
+    }
+    
+    private void EnterPreviewMode()
+    {
+        IsPreviewMode = true;
+    }
+    
+    private void ExitPreviewMode()
+    {
+        IsPreviewMode = false;
+    }
+    
+    public void Dispose()
+    {
+        // Clean up if needed
+    }
+} 

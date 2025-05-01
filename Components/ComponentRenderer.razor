@@ -1,0 +1,119 @@
+@using UIBuilderApp.Models
+
+<div class="component-renderer @(IsSelected ? "selected" : "")" 
+     style="position: absolute; 
+            left: @(Component.X)px; 
+            top: @(Component.Y)px; 
+            width: @(Component.Width)px; 
+            height: @(Component.Height)px; 
+            z-index: @Component.ZIndex;"
+     @onclick="OnComponentClick"
+     @onclick:stopPropagation="true">
+    
+    @* Render different component types *@
+    @switch (Component.ComponentType)
+    {
+        case "Button":
+            <button class="@GetPropertyValue("CssClass", "btn btn-primary")" style="width: 100%; height: 100%;">
+                @GetPropertyValue("Text", "Button")
+            </button>
+            break;
+            
+        case "TextBox":
+            <input type="text" class="form-control" style="width: 100%; height: 100%;" 
+                   placeholder="@GetPropertyValue("Placeholder", "Enter text...")" 
+                   value="@GetPropertyValue("Value", "")" />
+            break;
+            
+        case "Label":
+            <div class="@GetPropertyValue("CssClass", "")" style="width: 100%; height: 100%; display: flex; align-items: center;">
+                @GetPropertyValue("Text", "Label")
+            </div>
+            break;
+            
+        case "Dropdown":
+            <select class="form-control" style="width: 100%; height: 100%;">
+                @{
+                    var options = GetPropertyValue("Options", "Option 1,Option 2,Option 3");
+                    foreach(var option in options.Split(','))
+                    {
+                        <option value="@option">@option</option>
+                    }
+                }
+            </select>
+            break;
+            
+        case "Checkbox":
+            <div style="width: 100%; height: 100%; display: flex; align-items: center;">
+                <input type="checkbox" class="form-check-input" checked="@(GetPropertyValue("Checked", "false") == "true")" />
+                <span style="margin-left: 5px;">@GetPropertyValue("Text", "Checkbox")</span>
+            </div>
+            break;
+            
+        case "RadioButton":
+            <div style="width: 100%; height: 100%; display: flex; align-items: center;">
+                <input type="radio" class="form-check-input" name="@GetPropertyValue("GroupName", "group1")" 
+                       checked="@(GetPropertyValue("Checked", "false") == "true")" />
+                <span style="margin-left: 5px;">@GetPropertyValue("Text", "Radio Button")</span>
+            </div>
+            break;
+            
+        case "Image":
+            <img src="@GetPropertyValue("Src", "https://via.placeholder.com/150")" 
+                 alt="@GetPropertyValue("Alt", "Image")" 
+                 style="width: 100%; height: 100%; object-fit: contain;" />
+            break;
+            
+        case "Container":
+            <div style="width: 100%; height: 100%; 
+                        border: @GetPropertyValue("Border", "1px solid #ccc"); 
+                        background: @GetPropertyValue("Background", "#f8f9fa");"></div>
+            break;
+            
+        default:
+            <div>Unknown component type: @Component.ComponentType</div>
+            break;
+    }
+    
+    @* Resize handles when selected *@
+    @if (IsSelected)
+    {
+        <div class="resize-handle resize-handle-nw" @onmousedown="@(e => OnResizeStart(e, "nw"))"></div>
+        <div class="resize-handle resize-handle-ne" @onmousedown="@(e => OnResizeStart(e, "ne"))"></div>
+        <div class="resize-handle resize-handle-sw" @onmousedown="@(e => OnResizeStart(e, "sw"))"></div>
+        <div class="resize-handle resize-handle-se" @onmousedown="@(e => OnResizeStart(e, "se"))"></div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Models.ComponentBase Component { get; set; }
+    
+    [Parameter]
+    public bool IsSelected { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> OnSelect { get; set; }
+    
+    [Parameter]
+    public EventCallback<(string componentId, string handlePosition)> OnResize { get; set; }
+    
+    private string GetPropertyValue(string propertyName, string defaultValue)
+    {
+        if (Component.Properties.TryGetValue(propertyName, out var value))
+        {
+            return value?.ToString() ?? defaultValue;
+        }
+        return defaultValue;
+    }
+    
+    private async Task OnComponentClick()
+    {
+        await OnSelect.InvokeAsync(Component.Id);
+    }
+    
+    private async Task OnResizeStart(MouseEventArgs e, string handlePosition)
+    {
+        await OnResize.InvokeAsync((Component.Id, handlePosition));
+    }
+} 
