@@ -44,7 +44,8 @@ namespace UIBuilderApp.Models
                     };
 
                     // Now deserialize using the original reader into our created object
-                    return JsonSerializer.Deserialize<JsonElement>(ref reader, options).Deserialize(component.GetType(), options) as UIComponentBase;
+                    var result = JsonSerializer.Deserialize<JsonElement>(ref reader, options).Deserialize(component.GetType(), options) as UIComponentBase;
+                    return result ?? throw new JsonException("Failed to deserialize component");
                 }
             }
 

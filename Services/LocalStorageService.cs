@@ -63,7 +63,7 @@ namespace UIBuilderApp.Services
         /// <summary>
         /// Load a form by id
         /// </summary>
-        public async Task<FormLayout> LoadFormAsync(string formId)
+        public async Task<FormLayout?> LoadFormAsync(string formId)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace UIBuilderApp.Services
         public async Task SaveFormAsync(FormLayout form)
         {
             form.ModifiedDate = System.DateTime.Now;
-            await _localStorage.SetItemAsync($"{FORM_PREFIX}{form.Id}", form, _jsonOptions);
+            await _localStorage.SetItemAsync($"{FORM_PREFIX}{form.Id}", form);
 
             // Update the metadata list
             var metadataList = await GetAllFormMetadataAsync();
@@ -132,7 +132,7 @@ namespace UIBuilderApp.Services
         /// <summary>
         /// Import a form from JSON
         /// </summary>
-        public FormLayout ImportFormFromJson(string json)
+        public FormLayout? ImportFormFromJson(string json)
         {
             try
             {
@@ -150,9 +150,9 @@ namespace UIBuilderApp.Services
     /// </summary>
     public class FormMetadata
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public System.DateTime CreatedDate { get; set; }
         public System.DateTime ModifiedDate { get; set; }
     }

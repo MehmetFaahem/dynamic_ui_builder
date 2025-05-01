@@ -14,21 +14,22 @@ namespace UIBuilderApp.Services
         public FormLayout CurrentForm { get; private set; }
 
         // Currently selected component
-        public UIComponentBase SelectedComponent { get; private set; }
+        public UIComponentBase? SelectedComponent { get; private set; }
 
         // Event raised when component selection changes
-        public event Action<UIComponentBase> OnComponentSelected;
+        public event Action<UIComponentBase?>? OnComponentSelected;
 
         // Event raised when the form is modified
-        public event Action OnFormModified;
+        public event Action? OnFormModified;
 
         // Event raised when components need to be redrawn
-        public event Action OnComponentsChanged;
+        public event Action? OnComponentsChanged;
 
         // Constructor
         public DesignService()
         {
-            CreateNewForm();
+            CurrentForm = new FormLayout();
+            SelectedComponent = null;
         }
 
         /// <summary>

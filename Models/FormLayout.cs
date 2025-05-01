@@ -64,7 +64,7 @@ namespace UIBuilderApp.Models
         /// Create a deep copy of the current form layout
         /// </summary>
         /// <returns>New FormLayout instance with same data</returns>
-        public FormLayout Clone()
+        public FormLayout? Clone()
         {
             // Using JSON serialization to perform a deep copy
             var json = JsonSerializer.Serialize(this, new JsonSerializerOptions 
