@@ -1,4 +1,6 @@
 @using UIBuilderApp.Models
+@using Microsoft.AspNetCore.Components.Web
+@inject IJSRuntime JSRuntime
 
 <div class="component-renderer @(IsSelected ? "selected" : "")" 
      style="position: absolute; 
@@ -9,7 +11,10 @@
             z-index: @Component.ZIndex;"
      @onclick="OnComponentClick"
      @onclick:stopPropagation="true"
-     data-component-type="@Component.ComponentType">
+     @onmousedown="OnComponentMouseDown"
+     data-component-id="@Component.Id"
+     data-component-type="@Component.ComponentType"
+     @ref="componentElement">
     
     @* Render different component types *@
     @switch (Component.ComponentType)
@@ -99,6 +104,8 @@
     [Parameter]
     public EventCallback<(string componentId, string handlePosition)> OnResize { get; set; }
     
+    private ElementReference componentElement;
+    
     private string GetPropertyValue(string propertyName, string defaultValue)
     {
         if (Component.Properties.TryGetValue(propertyName, out var value))
@@ -111,6 +118,25 @@
     private async Task OnComponentClick()
     {
         await OnSelect.InvokeAsync(Component.Id);
+    }
+    
+    private async Task OnComponentMouseDown(MouseEventArgs e)
+    {
+        // Select the component first
+        await OnSelect.InvokeAsync(Component.Id);
+        
+        // Start dragging if it's not a resize handle
+        if (e.Target.ToString().Contains("resize-handle")) return;
+        
+        // Start dragging operation in JavaScript
+        await JSRuntime.InvokeVoidAsync(
+            "designCanvas.startDrag", 
+            componentElement, 
+            e.ClientX, 
+            e.ClientY,
+            Component.X,
+            Component.Y
+        );
     }
     
     private async Task OnResizeStart(MouseEventArgs e, string handlePosition)

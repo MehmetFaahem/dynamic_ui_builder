@@ -69,3 +69,89 @@ window.designCanvas = {
     this.canvasElement = null;
   },
 };
+
+// Design Canvas Drag and Drop JavaScript
+
+let isDragging = false;
+let currentElement = null;
+let startX, startY;
+let originalX, originalY;
+
+// Initialize drag and drop functionality
+function initDragDrop() {
+  document.addEventListener("mouseup", endDrag);
+  document.addEventListener("mousemove", drag);
+}
+
+// Start dragging a component
+function startDrag(element, x, y, initialX, initialY) {
+  isDragging = true;
+  currentElement = element;
+  startX = x;
+  startY = y;
+  originalX = initialX;
+  originalY = initialY;
+
+  // Add a dragging class for visual feedback
+  element.classList.add("dragging");
+
+  return true;
+}
+
+// Handle the drag operation
+function drag(e) {
+  if (!isDragging || !currentElement) return;
+
+  // Calculate the new position
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+
+  // Set the new position
+  currentElement.style.left = `${originalX + dx}px`;
+  currentElement.style.top = `${originalY + dy}px`;
+}
+
+// End dragging when mouse is released
+function endDrag() {
+  if (!isDragging || !currentElement) return;
+
+  // Remove the dragging class
+  currentElement.classList.remove("dragging");
+
+  // Extract the new position values
+  const newX = parseInt(currentElement.style.left);
+  const newY = parseInt(currentElement.style.top);
+
+  // Get the component ID from data attribute
+  const componentId = currentElement.getAttribute("data-component-id");
+
+  // Call the .NET method to update the component's position
+  DotNet.invokeMethodAsync(
+    "UIBuilderApp",
+    "UpdateComponentPosition",
+    componentId,
+    newX,
+    newY
+  );
+
+  // Reset dragging state
+  isDragging = false;
+  currentElement = null;
+}
+
+// Initialize when the document is ready
+document.addEventListener("DOMContentLoaded", initDragDrop);
+
+// Export functions for Blazor interop
+window.designCanvas = {
+  startDrag,
+  getElementBounds: (element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+  },
+};
